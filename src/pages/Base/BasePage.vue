@@ -10,8 +10,11 @@
 </template>
 
 <script>
-import ExampleComponent from "../../widget/control/ExampleComponent.vue";
-import ExampleButton from "../../widget/control/ExampleButton.vue";
+import {
+  ExampleComponent,
+  ExampleButton,
+  transButtonComponent,
+} from "../../widget/control";
 
 export default {
   name: "BasePage",
@@ -35,7 +38,11 @@ export default {
           case "exampleComponent":
             component = {
               type: ExampleComponent,
-              props: { title: "타이틀", description: "설명" },
+              props: {
+                title: "타이틀",
+                description: "설명",
+                //    props: el,
+              },
             };
             break;
           case "exampleButton":
@@ -44,7 +51,14 @@ export default {
               props: {
                 onClick: this.addButtonComponent,
                 label: "눌러요",
+                //props: el,
               },
+            };
+            break;
+          case "transButtonComponent":
+            component = {
+              type: transButtonComponent,
+              props: { el: el.outerHTML },
             };
             break;
           // 다른 컴포넌트도 추가
