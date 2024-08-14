@@ -1,8 +1,3 @@
-<template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <BasePage />
-</template>
-
 <script>
 import BasePage from "./pages/Base/BasePage.vue";
 
@@ -10,6 +5,12 @@ export default {
   name: "App",
   components: {
     BasePage,
+  },
+  render(h) {
+    return h("div", [
+      h("img", { attrs: { alt: "Vue logo", src: "./assets/logo.png" } }),
+      h(BasePage),
+    ]);
   },
 };
 </script>

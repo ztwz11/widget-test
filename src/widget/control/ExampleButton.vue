@@ -1,24 +1,23 @@
-<template>
-  <button @click="handleClick">{{ label }}</button>
-</template>
-
 <script>
 export default {
   name: "ExampleButton",
   props: {
-    onClick: {
-      type: Function,
-      required: true,
-    },
     label: {
       type: String,
       default: "버튼",
+    },
+    onClick: {
+      type: Function,
+      required: true,
     },
   },
   methods: {
     handleClick() {
       this.onClick();
     },
+  },
+  render() {
+    return <button onClick={this.handleClick}>{this.label}</button>;
   },
 };
 </script>
