@@ -1,7 +1,3 @@
-<template>
-  <div></div>
-</template>
-
 <script>
 import {
   ExampleComponent,
@@ -35,39 +31,36 @@ export default {
 
         switch (cid) {
           case "exampleComponent":
-            component = {
-              type: ExampleComponent,
-              key,
-              props: {
-                ...props,
-                ...events,
-                title: "타이틀",
-                description: "설명",
-              },
-            };
+            component = (
+              <ExampleComponent
+                key={key}
+                {...props}
+                {...events}
+                title="타이틀"
+                description="설명"
+              />
+            );
             break;
           case "exampleButton":
-            component = {
-              type: ExampleButton,
-              key,
-              props: {
-                ...props,
-                ...events,
-                onClick: this.addButtonComponent,
-                label: "눌러요",
-              },
-            };
+            component = (
+              <ExampleButton
+                key={key}
+                {...props}
+                {...events}
+                onClick={this.addButtonComponent}
+                label="눌러요"
+              />
+            );
             break;
           case "transButtonComponent":
-            component = {
-              type: transButtonComponent,
-              key,
-              props: {
-                el: el.outerHTML,
-                ...props,
-                ...events,
-              },
-            };
+            component = (
+              <transButtonComponent
+                key={key}
+                el={el.outerHTML}
+                {...props}
+                {...events}
+              />
+            );
             break;
           // 다른 컴포넌트도 추가
         }
@@ -107,21 +100,11 @@ export default {
     },
 
     addButtonComponent() {
-      this.components.push({
-        type: ExampleButton,
-        props: {
-          onClick: this.addButtonComponent,
-        },
-      });
+      this.components.push(<ExampleButton onClick={this.addButtonComponent} />);
     },
   },
-  render(h) {
-    return h(
-      "div",
-      this.components.map((component) =>
-        h(component.type, { key: component.key, ...component.props })
-      )
-    );
+  render() {
+    return <div>{this.components}</div>;
   },
 };
 </script>

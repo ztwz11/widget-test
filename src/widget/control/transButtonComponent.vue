@@ -45,8 +45,8 @@ export default {
       content,
     };
   },
-  render(h) {
-    return h("div", { ref: "content" });
+  render() {
+    return <div ref="content"></div>;
   },
 };
 </script>

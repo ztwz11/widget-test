@@ -9,18 +9,13 @@ window.widgetStart = function (config) {
   });
 
   document.addEventListener("widgetStart", (event) => {
-    const app = createApp({
-      render: (h) => h(App),
-    });
+    const app = createApp(App);
     const pinia = createPinia();
 
+    // 메뉴js에서 설정된 페이지 옵션 객체들 주입
     const widgetConfig = event.detail;
     app.config.globalProperties.$widgetConfig = widgetConfig;
     app.use(pinia);
-
-    const appElement = document.querySelector("#app");
-    if (appElement) {
-      app.mount(appElement);
-    }
+    app.mount("#app");
   });
 };

@@ -6,11 +6,13 @@ export default {
   components: {
     BasePage,
   },
-  render(h) {
-    return h("div", [
-      h("img", { attrs: { alt: "Vue logo", src: "./assets/logo.png" } }),
-      h(BasePage),
-    ]);
+  render() {
+    return (
+      <div>
+        <img alt="Vue logo" src="./assets/logo.png" />
+        <BasePage />
+      </div>
+    );
   },
 };
 </script>
