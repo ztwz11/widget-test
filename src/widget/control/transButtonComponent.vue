@@ -1,31 +1,41 @@
 <template>
-  <div v-html="el"></div>
+  <dynamic-component />
 </template>
 
 // script
 <script>
-import { ref } from "vue";
+//import { ref } from "vue";
 
-export default {
-  setup() {
-    const show = ref(false);
-
-    const toggleShow = () => {
-      show.value = !show.value;
-    };
-
-    return {
-      show,
-      toggleShow,
-    };
-  },
-  props: {
-    el: {
-      type: String,
-      required: true,
-    },
-  },
+const dynamicComponent = {
+  template: `<div>dynamic-component {{ message }}</div>`,
+  data: () => ({
+    message: "created!",
+  }),
 };
+export default {
+  components: { dynamicComponent },
+};
+
+// export default {
+//   setup() {
+//     const show = ref(false);
+
+//     const toggleShow = () => {
+//       show.value = !show.value;
+//     };
+
+//     return {
+//       show,
+//       toggleShow,
+//     };
+//   },
+//   props: {
+//     el: {
+//       type: String,
+//       required: true,
+//     },
+//   },
+// };
 </script>
 
 <style scoped>

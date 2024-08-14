@@ -5,6 +5,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: true,
+  runtimeCompiler: true,
   configureWebpack: {
     output: {
       filename: "js/[name].js",
