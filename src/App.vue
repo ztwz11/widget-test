@@ -4,7 +4,7 @@
 </template>
 
 <script>
-import BasePage from "./pages/Base/BasePage.vue";
+import BasePage from "./pages/Layout/BasePage.vue";
 
 export default {
   name: "App",
