@@ -1,4 +1,4 @@
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed, getCurrentInstance } from "vue";
 import { useWidgetStore } from "../store/widgetStore";
 
 export function convertTemplates(template) {
@@ -94,4 +94,46 @@ export function createWidgetComponent(options) {
   });
 }
 
-export default { convertTemplates, createWidgetComponent };
+export function createDynamicComponent(props, context) {
+  const dynamicComponentRef = ref(null);
+
+  const dynamicComponent = computed(() => ({
+    template: convertTemplates(props.el),
+    setup() {
+      const store = useWidgetStore();
+      const currentInstance = getCurrentInstance();
+
+      function onEvent(eventName, event) {
+        console.log(`Event triggered: ${eventName}`);
+        const fullEventName = `on${
+          props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
+        }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
+        if (store.hasEvent(fullEventName)) {
+          console.log(`Executing store event: ${fullEventName}`);
+          store.executeEvent.apply(this, [
+            fullEventName,
+            event,
+            currentInstance,
+          ]);
+        }
+        context.emit(eventName, event);
+      }
+
+      context.emit("event", onEvent);
+      return {
+        onEvent,
+      };
+    },
+  }));
+
+  return {
+    dynamicComponentRef,
+    dynamicComponent,
+  };
+}
+
+export default {
+  convertTemplates,
+  createWidgetComponent,
+  createDynamicComponent,
+};

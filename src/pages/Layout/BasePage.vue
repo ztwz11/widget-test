@@ -1,13 +1,27 @@
 <template>
-  <div>
-    <component
-      v-for="component in components"
-      :is="component.type"
-      :key="component.key"
-      :cjv-key="component.key"
-      v-bind="component.props"
-    />
-  </div>
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+  <br />
+  <img alt="Vue logo" src="../../assets/logo.png" />
+
+  <component
+    v-for="component in components"
+    :is="component.type"
+    :key="component.key"
+    :cjv-key="component.key"
+    v-bind="component.props"
+  />
 </template>
 
 <script>
@@ -72,6 +86,28 @@ export default {
               },
             };
             break;
+          case "scrollMenuComponent":
+            component = {
+              type: components.scrollMenuComponent,
+              props: {
+                el: el.outerHTML,
+                cjvKey: key,
+                ...props,
+                events,
+              },
+            };
+            break;
+          case "pagingComponent":
+            component = {
+              type: components.pagingComponent,
+              props: {
+                el: el.outerHTML,
+                cjvKey: key,
+                ...props,
+                events,
+              },
+            };
+            break;
           // 다른 컴포넌트도 추가
         }
 
@@ -109,22 +145,6 @@ export default {
       }
 
       return props;
-    },
-    extractEvents(el) {
-      const eventProps = {};
-      const eventAttributes = ["onclick", "onchange", "oninput"];
-
-      eventAttributes.forEach((attr) => {
-        const eventName = attr.slice(2);
-        if (el.hasAttribute(attr)) {
-          const methodName = el.getAttribute(attr);
-          eventProps[eventName] = (...args) => {
-            this.store.executeMethod(methodName, ...args);
-          };
-        }
-      });
-
-      return eventProps;
     },
   },
 };

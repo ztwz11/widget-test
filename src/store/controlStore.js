@@ -1,33 +1,34 @@
-// store/index.js
 import { defineStore } from "pinia";
+import { reactive, ref } from "vue";
 
-export const useControlStore = defineStore("control", {
-  state: () => ({
-    widgets: {},
-  }),
-  actions: {
-    addWidget(widget) {
-      if (widget) {
-        this.widgets[widget.props.cjvKey] = widget;
-      } else {
-        console.error("Widget must have a key property");
-      }
-    },
+export const useControlStore = defineStore("control", () => {
+  const widgets = reactive({});
 
-    getWidget(key) {
-      return this.widgets[key];
-    },
+  function addWidget(widget) {
+    if (widget) {
+      widgets[widget.props.cjvKey] = ref(widget);
+    }
+  }
 
-    getAllWidgets() {
-      return Object.values(this.widgets);
-    },
+  function getWidget(key) {
+    return widgets[key];
+  }
 
-    executeMethod(methodName, ...args) {
-      if (typeof window[methodName] === "function") {
-        return window[methodName](...args);
-      } else {
-        console.error(`Method ${methodName} not found`);
-      }
-    },
-  },
+  function setWidget(key, value) {
+    if (widgets[key]) {
+      widgets[key].value = value;
+    }
+  }
+
+  function getAllWidgets() {
+    return Object.values(widgets);
+  }
+
+  return {
+    widgets,
+    addWidget,
+    getWidget,
+    setWidget,
+    getAllWidgets,
+  };
 });

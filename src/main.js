@@ -1,9 +1,9 @@
-import { createApp } from "vue";
+import { createSSRApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import { useWidgetStore } from "./store/widgetStore";
 
-const app = createApp(App);
+const app = createSSRApp(App);
 const pinia = createPinia();
 app.use(pinia);
 

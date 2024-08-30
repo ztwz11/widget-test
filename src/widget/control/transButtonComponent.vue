@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { computed, getCurrentInstance, ref } from "vue";
+import { computed, getCurrentInstance, ref, toRef } from "vue";
 import { createWidgetComponent, convertTemplates } from "../../common/common";
 import { useWidgetStore } from "../../store/widgetStore";
 import { useControlStore } from "../../store/controlStore";
@@ -21,11 +21,12 @@ export default createWidgetComponent({
     },
   },
   setup(props, context) {
-    const valueStore = useControlStore();
-    const { widgets } = storeToRefs(valueStore);
+    const controlStore = useControlStore();
+    const { widgets } = storeToRefs(controlStore);
+
     const widgetValue = computed(() => {
-      console.log("widgetvalue", widgets.getWidget(props.cjvKey).value);
-      return widgets.getWidget(props.cjvKey).value;
+      const widget = widgets.value[props.cjvKey];
+      return widget ? widget.value : undefined;
     });
 
     const dynamicComponentRef = ref(null);
@@ -37,12 +38,12 @@ export default createWidgetComponent({
         const currentInstance = getCurrentInstance();
 
         function onEvent(eventName, event) {
-          console.log(`Event triggered: ${eventName}`); // 디버깅용 로그
+          console.log(`Event triggered: ${eventName}`);
           const fullEventName = `on${
             props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
           }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
           if (store.hasEvent(fullEventName)) {
-            console.log(`Executing store event: ${fullEventName}`); // 디버깅용 로그
+            console.log(`Executing store event: ${fullEventName}`);
             store.executeEvent.apply(this, [
               fullEventName,
               event,
@@ -55,7 +56,7 @@ export default createWidgetComponent({
         context.emit("event", onEvent);
         return {
           onEvent,
-          show: computed(() => widgetValue),
+          show: toRef(widgetValue),
         };
       },
     }));

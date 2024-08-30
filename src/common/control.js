@@ -25,22 +25,16 @@ export const control = {
         return widget ? widget.value : undefined;
       },
       setValue: (value) => {
-        const widget = store.getWidget(key);
+        const widget = store.setWidget(key, value);
         if (widget) {
           widget.value = value;
         }
       },
-      // 필요한 다른 메서드들...
     };
   },
 
   getAllWidgets() {
     initializeStore();
     return store.getAllWidgets();
-  },
-
-  executeMethod(methodName, ...args) {
-    initializeStore();
-    return store.executeMethod(methodName, ...args);
   },
 };

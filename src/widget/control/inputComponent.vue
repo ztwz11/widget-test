@@ -1,11 +1,19 @@
 <template>
-  <component :is="dynamicComponent" ref="dynamicComponentRef" v-bind="$attrs" />
+  <component
+    :is="dynamicComponent"
+    ref="dynamicComponentRef"
+    v-bind="$attrs"
+    @input="onInput"
+    :value="inputValue"
+  />
 </template>
 
 <script>
-import { computed, getCurrentInstance, ref } from "vue";
-import { createWidgetComponent, convertTemplates } from "../../common/common";
-import { useWidgetStore } from "../../store/widgetStore";
+import { ref, watch } from "vue";
+import {
+  createWidgetComponent,
+  createDynamicComponent,
+} from "../../common/common";
 import { useControlStore } from "../../store/controlStore";
 import { storeToRefs } from "pinia";
 
@@ -21,48 +29,36 @@ export default createWidgetComponent({
     },
   },
   setup(props, context) {
-    const valueStore = useControlStore();
-    const { widgets } = storeToRefs(valueStore);
-    const widgetValue = computed(() => {
-      console.log("widgetvalue", widgets.getWidget(props.cjvKey).value);
-      return widgets.getWidget(props.cjvKey).value;
-    });
+    const controlStore = useControlStore();
+    const { widgets } = storeToRefs(controlStore);
 
-    const dynamicComponentRef = ref(null);
+    const inputValue = ref("");
 
-    const dynamicComponent = computed(() => ({
-      template: convertTemplates(props.el),
-      setup() {
-        const store = useWidgetStore();
-        const currentInstance = getCurrentInstance();
-
-        function onEvent(eventName, event) {
-          console.log(`Event triggered: ${eventName}`); // 디버깅용 로그
-          const fullEventName = `on${
-            props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
-          }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
-          if (store.hasEvent(fullEventName)) {
-            console.log(`Executing store event: ${fullEventName}`); // 디버깅용 로그
-            store.executeEvent.apply(this, [
-              fullEventName,
-              event,
-              currentInstance,
-            ]);
-          }
-          context.emit(eventName, event);
+    watch(
+      () => widgets.value[props.cjvKey]?.value,
+      (newVal) => {
+        if (newVal !== undefined) {
+          inputValue.value = newVal;
         }
-
-        context.emit("event", onEvent);
-        return {
-          onEvent,
-          show: computed(() => widgetValue),
-        };
       },
-    }));
+      { immediate: true }
+    );
+
+    const { dynamicComponentRef, dynamicComponent } = createDynamicComponent(
+      props,
+      context
+    );
+
+    function onInput(event) {
+      inputValue.value = event.target.value;
+      controlStore.setWidget(props.cjvKey, inputValue.value);
+    }
 
     return {
       dynamicComponent,
       dynamicComponentRef,
+      inputValue,
+      onInput,
     };
   },
 });

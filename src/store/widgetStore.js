@@ -1,3 +1,4 @@
+import { ref } from "vue";
 import { defineStore } from "pinia";
 import { control } from "../common/control";
 
@@ -5,7 +6,8 @@ export const useWidgetStore = defineStore("widget", {
   state: () => ({
     config: null,
     components: {},
-    events: {},
+    //TODO 정환: 제거하고 flat하게 관리할
+    events: ref({}),
   }),
   actions: {
     setConfig(config) {
@@ -14,15 +16,7 @@ export const useWidgetStore = defineStore("widget", {
     registerComponent(id, component) {
       this.components[id] = component;
     },
-    executeMethod(methodName, ...args) {
-      if (
-        this.config &&
-        this.config.v &&
-        typeof this.config.v[methodName] === "function"
-      ) {
-        return this.config.v[methodName](...args);
-      }
-    },
+
     setEvent(eventName, handler) {
       this.events[eventName] = handler;
 
