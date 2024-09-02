@@ -1,20 +1,4 @@
 <template>
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-  <br />
-  <img alt="Vue logo" src="../../assets/logo.png" />
-
   <component
     v-for="component in components"
     :is="component.type"
@@ -47,7 +31,6 @@ export default {
         const componentType = el.getAttribute("cjv-component");
         const key =
           el.getAttribute("cjv-key") || Math.random().toString(36).substr(2, 9);
-        const events = this.extractEvents(el);
         const props = this.extractProps(el);
         const controlStore = useControlStore();
         let component = null;
@@ -60,7 +43,6 @@ export default {
                 el: el.outerHTML,
                 cjvKey: key,
                 ...props,
-                events,
               },
             };
             break;
@@ -71,7 +53,6 @@ export default {
                 el: el.outerHTML,
                 cjvKey: key,
                 ...props,
-                events,
               },
             };
             break;
@@ -82,7 +63,6 @@ export default {
                 el: el.outerHTML,
                 cjvKey: key,
                 ...props,
-                events,
               },
             };
             break;
@@ -93,7 +73,6 @@ export default {
                 el: el.outerHTML,
                 cjvKey: key,
                 ...props,
-                events,
               },
             };
             break;
@@ -104,7 +83,6 @@ export default {
                 el: el.outerHTML,
                 cjvKey: key,
                 ...props,
-                events,
               },
             };
             break;

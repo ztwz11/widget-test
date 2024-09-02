@@ -1,6 +1,6 @@
 const { defineConfig } = require("@vue/cli-service");
 const CopyPlugin = require("copy-webpack-plugin");
-//const path = require("path"); // path 모듈 추가
+const webpack = require("webpack");
 
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -13,27 +13,6 @@ module.exports = defineConfig({
     },
     optimization: {
       minimize: false,
-      // splitChunks: {
-      //   minSize: 10,
-      //   maxSize: 70000,
-      //   cacheGroups: {
-      //     common: {
-      //       test: /[\\/]src[\\/]widget[\\/]common[\\/]/,
-      //       name: "common",
-      //       chunks: "all",
-      //     },
-      //     control: {
-      //       test: /[\\/]src[\\/]widget[\\/]control[\\/]/,
-      //       name: "control",
-      //       chunks: "all",
-      //     },
-      //     pageBase: {
-      //       test: /[\\/]src[\\/]widget[\\/]page[\\/]base[\\/]/,
-      //       name: "pageBase",
-      //       chunks: "all",
-      //     },
-      //   },
-      // },
     },
     plugins: [
       new CopyPlugin({
@@ -45,15 +24,26 @@ module.exports = defineConfig({
           },
         ],
       }),
+      new webpack.DefinePlugin({
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "true",
+        __VUE_PROD_DEVTOOLS__: "true",
+      }),
     ],
   },
+
   // chainWebpack: (config) => {
-  //   config.plugins.delete("named-chunks");
-  //   config.plugins.delete("hash-module-ids");
-  //   config.resolve.alias.set(
-  //     "@control",
-  //     path.resolve(__dirname, "src/widget/control")
-  //   );
+  //   config.plugin("define").tap((definitions) => {
+  //     Object.assign(definitions[0], {
+  //       __VUE_OPTIONS_API__: JSON.stringify(true),
+  //       __VUE_PROD_DEVTOOLS__: JSON.stringify(
+  //         process.env.VUE_APP_PROD_DEVTOOLS === "true"
+  //       ),
+  //       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(
+  //         process.env.VUE_APP_PROD_HYDRATION_MISMATCH_DETAILS === "true"
+  //       ),
+  //     });
+  //     return definitions;
+  //   });
   // },
   outputDir: "dist",
   assetsDir: "js",

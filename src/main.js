@@ -1,9 +1,10 @@
-import { createSSRApp } from "vue";
+import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
+import router from "./router/router";
 import { useWidgetStore } from "./store/widgetStore";
 
-const app = createSSRApp(App);
+const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
 
@@ -32,9 +33,11 @@ window.widgetStart = function (config) {
       isProduction: process.env.NODE_ENV,
       isMobile: false,
     });
-
+    //디버그모드
+    app.config.performance = true;
+    app.use(router);
     // Vue 앱 마운트
-    app.mount("#app", true);
+    app.mount("#app");
 
     // 초기화 및 컴포넌트 기초 세팅 로직 실행
     if (config.v && typeof config.v.init === "function") {
