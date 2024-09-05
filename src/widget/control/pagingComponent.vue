@@ -94,18 +94,18 @@ export default {
     );
 
     const goToPage = (page, event) => {
-      if (
-        page !== options.value.currentPage &&
-        page >= 1 &&
-        page <= totalPages.value
-      ) {
-        const store = useWidgetStore();
-        const eventName = `on${props.cjvKey}${event.target.innerText
-          .trim()
-          .charAt(0)
-          .toUpperCase()}Change`;
-        store.executeEvent(eventName, page);
-      }
+      // if (
+      //   page !== options.value.currentPage &&
+      //   page >= 1 &&
+      //   page <= totalPages.value
+      // ) {
+      const store = useWidgetStore();
+      const eventName = `on${props.cjvKey}${event.target.innerText
+        .trim()
+        .charAt(0)
+        .toUpperCase()}Change`;
+      store.executeEvent(eventName, page);
+      // }
     };
 
     return {

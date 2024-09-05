@@ -1,5 +1,6 @@
 // storeInterface.js
 import { useControlStore } from "../store/controlStore";
+import { startMeasure, endMeasure, getMeasure } from "./performance";
 
 let store;
 
@@ -36,5 +37,16 @@ export const control = {
   getAllWidgets() {
     initializeStore();
     return store.getAllWidgets();
+  },
+  setTimeCheckStart(value) {
+    return startMeasure(value);
+  },
+
+  setTimeCheckEnd(value) {
+    return endMeasure(value);
+  },
+
+  getTimeCheck(value) {
+    return getMeasure(value);
   },
 };

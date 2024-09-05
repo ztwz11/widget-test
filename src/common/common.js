@@ -1,4 +1,10 @@
-import { defineComponent, ref, computed, getCurrentInstance } from "vue";
+import {
+  defineComponent,
+  ref,
+  computed,
+  getCurrentInstance,
+  useAttrs,
+} from "vue";
 import { useControlStore, useWidgetStore } from "../store";
 import * as components from "../widget/control";
 
@@ -13,7 +19,7 @@ export function useComponentTree() {
     }
 
     const componentTree = [];
-    const componentElements = element.querySelectorAll("[cjv-component]");
+    const componentElements = element.querySelectorAll("[cjt-comp]");
 
     for (const el of componentElements) {
       const componentInfo = createComponentInfo(el);
@@ -33,9 +39,9 @@ export function useComponentTree() {
   };
 
   const createComponentInfo = (el) => {
-    const componentType = el.getAttribute("cjv-component");
+    const componentType = el.getAttribute("cjt-comp");
     const key =
-      el.getAttribute("cjv-key") || Math.random().toString(36).substring(2, 9);
+      el.getAttribute("cjt-key") || Math.random().toString(36).substring(2, 9);
     const props = extractProps(el);
 
     if (!components[componentType]) {
@@ -59,7 +65,7 @@ export function useComponentTree() {
     const props = {};
     Array.from(el.attributes).forEach((attr) => {
       const { name, value } = attr;
-      if (name !== "cjv-component" && !name.startsWith("on")) {
+      if (name !== "cjt-comp" && !name.startsWith("on")) {
         props[name] =
           value === "" || value === "true" || value === name
             ? true
@@ -84,9 +90,7 @@ export function useComponentTree() {
 
     dynamicComponents.value = componentTree.filter(Boolean);
 
-    rootElement
-      .querySelectorAll("[cjv-component]")
-      .forEach((el) => el.remove());
+    rootElement.querySelectorAll("[cjt-comp]").forEach((el) => el.remove());
   };
 
   return {
@@ -152,10 +156,9 @@ export function convertTemplates(template) {
   return result;
 }
 
-//동적 위젯 생성 공통 함수
-export function createWidgetComponent(options) {
+export function createWidget(options) {
   return defineComponent({
-    name: options.name,
+    name: options.name || "DynamicWidget",
     props: {
       cjvKey: {
         type: String,
@@ -163,78 +166,55 @@ export function createWidgetComponent(options) {
       },
       el: {
         type: String,
-        required: false,
+        required: true,
       },
       ...options.props,
     },
+    emits: ["update:modelValue", ...Object.keys(options.emits || {})],
     setup(props, context) {
-      const store = useWidgetStore();
-      const customSetup = options.setup ? options.setup(props, context) : {};
+      const widgetStore = useWidgetStore();
 
-      function onEvent(eventName, event) {
-        console.log(`Event triggered: ${eventName}`); // 디버깅용 로그
-        const fullEventName = `on${props.cjvKey}${
-          eventName.charAt(0).toUpperCase() + eventName.slice(1)
-        }`;
-        if (store.hasEvent(fullEventName)) {
-          console.log(`Executing store event: ${fullEventName}`); // 디버깅용 로그
-          store.executeEvent(fullEventName, event).bind(store);
-        }
-        context.emit(eventName, event);
-      }
-
-      context.emit("event", onEvent);
-
-      return {
-        ...customSetup,
-        onEvent,
-      };
-    },
-  });
-}
-
-//동적 생성 위젯 이벤트호출 로직
-export function createDynamicComponent(props, context) {
-  const dynamicComponentRef = ref(null);
-
-  const dynamicComponent = computed(() => ({
-    template: convertTemplates(props.el),
-    setup() {
-      const store = useWidgetStore();
       const currentInstance = getCurrentInstance();
+      const attrs = useAttrs();
+
+      const dynamicComponentRef = ref(null);
+
+      const dynamicComponent = computed(() => ({
+        template: convertTemplates(props.el),
+        setup() {
+          return {
+            ...options.setup?.(props, context),
+            onEvent,
+          };
+        },
+      }));
 
       function onEvent(eventName, event) {
         console.log(`Event triggered: ${eventName}`);
         const fullEventName = `on${
           props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
         }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
-        if (store.hasEvent(fullEventName)) {
+
+        if (widgetStore.hasEvent(fullEventName)) {
           console.log(`Executing store event: ${fullEventName}`);
-          store.executeEvent.apply(this, [
-            fullEventName,
-            event,
-            currentInstance,
-          ]);
+          widgetStore.executeEvent(fullEventName, event, currentInstance);
         }
         context.emit(eventName, event);
       }
 
-      context.emit("event", onEvent);
-      return {
-        onEvent,
-      };
+      return () => (
+        <dynamicComponent.value
+          ref={dynamicComponentRef}
+          {...attrs}
+          onEvent={onEvent}
+        />
+      );
     },
-  }));
-
-  return {
-    dynamicComponentRef,
-    dynamicComponent,
-  };
+  });
 }
 
 export default {
   convertTemplates,
-  createWidgetComponent,
-  createDynamicComponent,
+  createWidget,
   useComponentTree,
 };

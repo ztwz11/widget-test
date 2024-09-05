@@ -1,129 +1,136 @@
 <template>
-  <component
-    v-for="component in components"
-    :is="component.type"
-    :key="component.key"
-    :cjv-key="component.key"
-    v-bind="component.props"
-  />
+  <div id="base-page-root">
+    <component
+      v-for="comp in dynamicComponents"
+      :key="comp.key"
+      :is="comp.type"
+      v-bind="comp.props"
+    />
+  </div>
 </template>
 
-<script>
-import * as components from "../../widget/control";
+<script setup>
+import { shallowRef, onMounted, nextTick, markRaw } from "vue";
+import * as componentMap from "../../widget/control";
 import { useControlStore } from "../../store";
-//import MyComponent2 from "../../common/";
+import {
+  startMeasure,
+  endMeasure,
+  logAllMeasures,
+} from "../../common/performance";
 
-export default {
-  name: "BasePage",
-  data() {
-    return {
-      components: [],
-    };
-  },
-  mounted() {
-    this.init();
-  },
-  methods: {
-    init() {
-      console.log("stop");
-      const elements = document.querySelectorAll("[cjv-component]");
-      elements.forEach((el) => {
-        const componentType = el.getAttribute("cjv-component");
-        const key =
-          el.getAttribute("cjv-key") || Math.random().toString(36).substr(2, 9);
-        const props = this.extractProps(el);
-        const controlStore = useControlStore();
-        let component = null;
+const controlStore = useControlStore();
+const dynamicComponents = shallowRef([]);
 
-        switch (componentType) {
-          case "transButtonComponent":
-            component = {
-              type: components.transButtonComponent,
-              props: {
-                el: el.outerHTML,
-                cjvKey: key,
-                ...props,
-              },
-            };
-            break;
-          case "inputComponent":
-            component = {
-              type: components.inputComponent,
-              props: {
-                el: el.outerHTML,
-                cjvKey: key,
-                ...props,
-              },
-            };
-            break;
-          case "buttonComponent":
-            component = {
-              type: components.buttonComponent,
-              props: {
-                el: el.outerHTML,
-                cjvKey: key,
-                ...props,
-              },
-            };
-            break;
-          case "scrollMenuComponent":
-            component = {
-              type: components.scrollMenuComponent,
-              props: {
-                el: el.outerHTML,
-                cjvKey: key,
-                ...props,
-              },
-            };
-            break;
-          case "pagingComponent":
-            component = {
-              type: components.pagingComponent,
-              props: {
-                el: el.outerHTML,
-                cjvKey: key,
-                ...props,
-              },
-            };
-            break;
-          // 다른 컴포넌트도 추가
-        }
+onMounted(() => {
+  startMeasure("BasePage-mounted");
+  initComponents();
+});
 
-        if (component) {
-          controlStore.addWidget(component);
-          this.components.push(component);
-          el.remove();
-        }
-      });
-    },
-    extractProps(el) {
-      const props = {};
-      const attributes = el.attributes;
+async function initComponents() {
+  console.log("stop");
 
-      for (let i = 0; i < attributes.length; i++) {
-        const attribute = attributes[i];
-        const name = attribute.name;
-        const value = attribute.value;
+  startMeasure("processElements");
+  const elements = Array.from(document.querySelectorAll("[cjt-comp]"));
+  const processedComponents = [];
 
-        // cjv-component와 이벤트 속성(on으로 시작하는 속성)은 제외
-        if (name !== "cjv-component" && !name.startsWith("on")) {
-          // 불리언 속성 처리
-          if (value === "" || value === "true" || value === name) {
-            props[name] = true;
-          } else if (value === "false") {
-            props[name] = false;
-          } else if (!isNaN(Number(value))) {
-            // 숫자로 변환 가능한 경우
-            props[name] = Number(value);
-          } else {
-            // 그 외의 경우 문자열로 처리
-            props[name] = value;
-          }
-        }
+  const chunkSize = 200; // 조정 가능한 청크 크기
+  for (let i = 0; i < elements.length; i += chunkSize) {
+    const chunk = elements.slice(i, i + chunkSize);
+    processedComponents.push(...processElementChunk(chunk));
+
+    // 브라우저가 다른 작업을 처리할 수 있도록 잠시 대기
+    if (i + chunkSize < elements.length) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  // 모든 컴포넌트를 한 번에 설정
+  dynamicComponents.value = processedComponents;
+
+  endMeasure("processElements");
+
+  nextTick(() => {
+    replaceElements();
+    endMeasure("BasePage-mounted");
+    logAllMeasures();
+  });
+}
+
+function processElementChunk(elements) {
+  return elements
+    .map((el) => {
+      const componentType = el.getAttribute("cjt-comp");
+      const key =
+        el.getAttribute("cjt-key") || Math.random().toString(36).substr(2, 9);
+      const props = extractProps(el);
+
+      if (!componentMap[componentType]) {
+        console.warn(`Unknown component type: ${componentType}`);
+        return null;
       }
 
-      return props;
-    },
-  },
-};
+      const component = {
+        type: markRaw(componentMap[componentType]),
+        key,
+        props: {
+          el: el.outerHTML,
+          cjvKey: key,
+          ...props,
+        },
+      };
+
+      // Widget 등록
+      controlStore.addWidget(component);
+
+      return component;
+    })
+    .filter(Boolean);
+}
+
+function extractProps(el) {
+  return Array.from(el.attributes).reduce((props, attr) => {
+    if (attr.name !== "cjt-comp" && !attr.name.startsWith("on")) {
+      const value = attr.value;
+      if (value === "" || value === "true" || value === attr.name) {
+        props[attr.name] = true;
+      } else if (value === "false") {
+        props[attr.name] = false;
+      } else if (!isNaN(Number(value))) {
+        props[attr.name] = Number(value);
+      } else {
+        props[attr.name] = value;
+      }
+    }
+    return props;
+  }, {});
+}
+
+function replaceElements() {
+  dynamicComponents.value.forEach((comp) => {
+    const originalEl = document.querySelector(`[cjt-key="${comp.key}"]`);
+    if (originalEl) {
+      const placeholder = document.createElement("div");
+      placeholder.id = `placeholder-${comp.key}`;
+      originalEl.parentNode.replaceChild(placeholder, originalEl);
+    }
+  });
+}
+
+// 컴포넌트가 마운트된 후 올바른 위치로 이동
+onMounted(() => {
+  nextTick(() => {
+    dynamicComponents.value.forEach((comp) => {
+      const placeholder = document.getElementById(`placeholder-${comp.key}`);
+      if (placeholder) {
+        const componentElement = document.querySelector(
+          `[data-key="${comp.key}"]`
+        );
+        if (componentElement) {
+          placeholder.parentNode.replaceChild(componentElement, placeholder);
+        }
+      }
+    });
+  });
+});
 </script>

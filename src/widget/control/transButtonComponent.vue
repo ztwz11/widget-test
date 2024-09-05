@@ -1,26 +1,20 @@
 <template>
-  <component :is="dynamicComponent" ref="dynamicComponentRef" v-bind="$attrs" />
+  <TransButtonWidget
+    :is="dynamicComponent"
+    ref="dynamicComponentRef"
+    v-bind="$attrs"
+  />
 </template>
 
-<script>
-import { computed, getCurrentInstance, ref, toRef } from "vue";
-import { createWidgetComponent, convertTemplates } from "../../common/common";
-import { useWidgetStore } from "../../store/widgetStore";
+<script setup>
+import { computed, ref, toRef, defineExpose } from "vue";
+import { createWidget, convertTemplates } from "../../common/common";
 import { useControlStore } from "../../store/controlStore";
 import { storeToRefs } from "pinia";
 
-export default createWidgetComponent({
-  props: {
-    cjvKey: {
-      type: String,
-      required: true,
-    },
-    el: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props, context) {
+const TransButtonWidget = createWidget({
+  name: "TransButtonComponent",
+  setup(props) {
     const controlStore = useControlStore();
     const { widgets } = storeToRefs(controlStore);
 
@@ -34,28 +28,7 @@ export default createWidgetComponent({
     const dynamicComponent = computed(() => ({
       template: convertTemplates(props.el),
       setup() {
-        const store = useWidgetStore();
-        const currentInstance = getCurrentInstance();
-
-        function onEvent(eventName, event) {
-          console.log(`Event triggered: ${eventName}`);
-          const fullEventName = `on${
-            props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
-          }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
-          if (store.hasEvent(fullEventName)) {
-            console.log(`Executing store event: ${fullEventName}`);
-            store.executeEvent.apply(this, [
-              fullEventName,
-              event,
-              currentInstance,
-            ]);
-          }
-          context.emit(eventName, event);
-        }
-
-        context.emit("event", onEvent);
         return {
-          onEvent,
           show: toRef(widgetValue),
         };
       },
@@ -64,7 +37,15 @@ export default createWidgetComponent({
     return {
       dynamicComponent,
       dynamicComponentRef,
+      widgetValue,
     };
   },
+});
+
+// Expose the onEvent method and dynamicComponent
+const transButtonWidgetRef = ref(null);
+defineExpose({
+  onEvent: () => transButtonWidgetRef.value?.onEvent,
+  dynamicComponent: () => transButtonWidgetRef.value?.dynamicComponent,
 });
 </script>

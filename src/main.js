@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/router";
 import { useWidgetStore } from "./store/widgetStore";
+import { startGlobalMeasure, endGlobalMeasure } from "./common/performance";
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -11,6 +12,7 @@ app.use(pinia);
 // 전역 위젯 설정 함수
 window.widgetStart = function (config) {
   const store = useWidgetStore();
+  startGlobalMeasure();
 
   // 이벤트 등록 함수
   function registerEvents(events) {
@@ -37,12 +39,16 @@ window.widgetStart = function (config) {
     app.config.performance = true;
     app.use(router);
     // Vue 앱 마운트
-    app.mount("#app");
+    const vueApp = app.mount("#app");
 
     // 초기화 및 컴포넌트 기초 세팅 로직 실행
     if (config.v && typeof config.v.init === "function") {
       config.v.init();
     }
+
+    vueApp.$nextTick(() => {
+      endGlobalMeasure();
+    });
   });
 };
 
