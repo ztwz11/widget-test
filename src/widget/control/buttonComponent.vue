@@ -1,31 +1,41 @@
-<template>
-  <ButtonWidget
-    ref="buttonWidgetRef"
-    :cjvKey="cjvKey"
-    :el="el"
-    v-bind="$attrs"
-  />
-</template>
-
 <script setup>
-import { computed, ref, defineExpose } from "vue";
+import { ref, computed, defineExpose, defineProps, defineEmits } from "vue";
 import { createWidget } from "../../common/common";
 import { useControlStore } from "../../store/controlStore";
 import { storeToRefs } from "pinia";
 
-const valueStore = useControlStore();
-const { widgets } = storeToRefs(valueStore);
+const props = defineProps({
+  cjvKey: {
+    type: String,
+    required: true,
+  },
+  el: {
+    type: String,
+    required: true,
+  },
+});
+
+const emit = defineEmits(["click"]);
+
+const controlStore = useControlStore();
+const { widgets } = storeToRefs(controlStore);
+
+const buttonValue = computed(() => {
+  return widgets.value[props.cjvKey]?.value;
+});
 
 const ButtonWidget = createWidget({
   name: "ButtonComponent",
-  setup(props) {
-    const widgetValue = computed(() => {
-      console.log("widgetvalue", widgets.value.getWidget(props.cjvKey).value);
-      return widgets.value.getWidget(props.cjvKey).value;
-    });
+  props,
+  emits: emit,
+  setup(props, { emit }) {
+    const onClick = (event) => {
+      emit("click", event);
+    };
 
     return {
-      show: widgetValue,
+      buttonValue,
+      onClick,
     };
   },
 });
@@ -33,6 +43,17 @@ const ButtonWidget = createWidget({
 // Expose the onEvent method
 const buttonWidgetRef = ref(null);
 defineExpose({
-  onEvent: () => buttonWidgetRef.value?.onEvent,
+  onEvent: (eventName, event) =>
+    buttonWidgetRef.value?.onEvent(eventName, event),
 });
 </script>
+
+<template>
+  <ButtonWidget
+    ref="buttonWidgetRef"
+    :cjvKey="cjvKey"
+    :el="el"
+    :value="buttonValue"
+    v-bind="$attrs"
+  />
+</template>

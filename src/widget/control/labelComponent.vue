@@ -1,27 +1,20 @@
 <template>
-  <labelWidget
+  <LabelWidget
     ref="labelWidgetRef"
     :cjvKey="cjvKey"
     :el="el"
-    :text="labelValue"
-    v-bind="setOption"
+    :value="labelValue"
+    @change="onChange"
+    @focus="onFocus"
+    v-bind="info"
   />
 </template>
 
 <script setup>
-import {
-  ref,
-  watch,
-  defineProps,
-  defineEmits,
-
-  // computed,
-} from "vue";
+import { ref, watch, defineExpose, defineProps, defineEmits } from "vue";
 import { createWidget } from "../../common/common";
 import { useControlStore } from "../../store/controlStore";
 import { storeToRefs } from "pinia";
-
-const emit = defineEmits(["update:modelValue", "change", "focus"]);
 
 const props = defineProps({
   cjvKey: {
@@ -51,28 +44,47 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["update:modelValue", "change", "focus"]);
+
 const controlStore = useControlStore();
 const { widgets } = storeToRefs(controlStore);
 const labelValue = ref("");
 
-const labelWidget = createWidget({
-  name: "labelComponent",
-  props: props,
+const LabelWidget = createWidget({
+  name: "LabelComponent",
+  props,
   emits: emit,
-  setup() {
+  setup(props, { emit }) {
+    watch(
+      () => widgets.value[props.cjvKey]?.value,
+      (newVal) => {
+        if (newVal !== undefined) {
+          labelValue.value = newVal;
+        }
+      },
+      { immediate: true }
+    );
+
+    const onChange = (event) => {
+      emit("change", event);
+    };
+
+    const onFocus = (event) => {
+      emit("focus", event);
+    };
+
     return {
       labelValue,
+      onChange,
+      onFocus,
     };
   },
 });
 
-watch(
-  () => widgets.value[props.cjvKey]?.value,
-  (newVal) => {
-    if (newVal !== undefined) {
-      labelValue.value = newVal;
-    }
-  },
-  { immediate: true }
-);
+// Expose the onEvent method if needed
+const labelWidgetRef = ref(null);
+defineExpose({
+  onEvent: (eventName, event) =>
+    labelWidgetRef.value?.onEvent(eventName, event),
+});
 </script>

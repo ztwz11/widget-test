@@ -1,10 +1,4 @@
-import {
-  defineComponent,
-  ref,
-  computed,
-  getCurrentInstance,
-  useAttrs,
-} from "vue";
+import { defineComponent, ref, markRaw } from "vue";
 import { useControlStore, useWidgetStore } from "../store";
 import * as components from "../widget/control";
 
@@ -174,42 +168,34 @@ export function createWidget(options) {
     setup(props, context) {
       const widgetStore = useWidgetStore();
 
-      const currentInstance = getCurrentInstance();
-      const attrs = useAttrs();
-
-      const dynamicComponentRef = ref(null);
-
-      const dynamicComponent = computed(() => ({
-        template: convertTemplates(props.el),
-        setup() {
-          return {
-            ...options.setup?.(props, context),
-            onEvent,
-          };
-        },
-      }));
+      const setupResult = options.setup ? options.setup(props, context) : {};
 
       function onEvent(eventName, event) {
-        console.log(`Event triggered: ${eventName}`);
         const fullEventName = `on${
           props.cjvKey.charAt(0).toUpperCase() + props.cjvKey.slice(1)
         }${eventName.charAt(0).toUpperCase() + eventName.slice(1)}`;
-
         if (widgetStore.hasEvent(fullEventName)) {
-          console.log(`Executing store event: ${fullEventName}`);
-          widgetStore.executeEvent(fullEventName, event, currentInstance);
+          widgetStore.executeEvent(fullEventName, event);
         }
         context.emit(eventName, event);
       }
 
-      return () => (
-        <dynamicComponent.value
-          ref={dynamicComponentRef}
-          {...attrs}
-          onEvent={onEvent}
-        />
-      );
+      const dynamicComponent = markRaw({
+        template: convertTemplates(props.el),
+        setup() {
+          return {
+            ...setupResult,
+            onEvent,
+          };
+        },
+      });
+
+      return {
+        dynamicComponent,
+      };
     },
+    template:
+      '<component :is="dynamicComponent" v-bind="$props" v-on="$listeners" />',
   });
 }
 
