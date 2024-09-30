@@ -6,6 +6,8 @@ import pagingComponent from "./pagingComponent.vue";
 import testinputComponent from "./testinputComponent.vue";
 import labelComponent from "./labelComponent.vue";
 import gridComponent from "./gridComponent.vue";
+import anchorComponent from "./anchorComponent.vue";
+import contentsComponent from "./contentsComponent.vue";
 
 export {
   transButtonComponent,
@@ -16,4 +18,6 @@ export {
   testinputComponent,
   labelComponent,
   gridComponent,
+  anchorComponent,
+  contentsComponent,
 };

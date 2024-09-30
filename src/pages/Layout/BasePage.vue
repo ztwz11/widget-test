@@ -1,12 +1,10 @@
 <template>
-  <div id="base-page-root">
-    <component
-      v-for="comp in dynamicComponents"
-      :key="comp.key"
-      :is="comp.type"
-      v-bind="comp.props"
-    />
-  </div>
+  <component
+    v-for="comp in dynamicComponents"
+    :key="comp.key"
+    :is="comp.type"
+    v-bind="comp.props"
+  />
 </template>
 
 <script setup>
@@ -60,7 +58,7 @@ async function initComponents() {
 function processElementChunk(elements) {
   return elements
     .map((el) => {
-      const componentType = el.getAttribute("cjt-comp");
+      const componentType = `${el.getAttribute("cjt-comp")}Component`;
       const key =
         el.getAttribute("cjt-key") || Math.random().toString(36).substr(2, 9);
       const props = extractProps(el);
